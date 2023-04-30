@@ -36,17 +36,17 @@ constraint forall(i in 1..(2*(n-1)-1), j in 1..n) (
 );
 
 % Restricción 4
-constraint forall(i in 1..n) (
-  let {
-    array[int] of var opt int: local = [ k | k in 1..2*(n-1) where Cal[k, i] > 0 ],
-    array[int] of var opt int: local_inicio = [ k | k in index_set(local) where k == 1 \/ local[k] - local[k - 1] > 1 ],
-    array[int] of var opt int: local_fin = [ k | k in index_set(local) where k == length(local) \/ local[k + 1] - local[k] > 1 ]
-  } in (
-    forall(k in index_set(local_inicio)) (
-      (local_fin[k] - local_inicio[k] + 1) >= 1 /\ (local_fin[k] - local_inicio[k] + 1) <= 6
-    )
-  )
-);
+% constraint forall(i in 1..n) (
+%   let {
+%     array[int] of var opt int: local = [ k | k in 1..2*(n-1) where Cal[k, i] > 0 ],
+%     array[int] of var opt int: local_inicio = [ k | k in index_set(local) where k == 1 \/ local[k] - local[k - 1] > 1 ],
+%     array[int] of var opt int: local_fin = [ k | k in index_set(local) where k == length(local) \/ local[k + 1] - local[k] > 1 ]
+%   } in (
+%     forall(k in index_set(local_inicio)) (
+%       (local_fin[k] - local_inicio[k] + 1) >= 1 /\ (local_fin[k] - local_inicio[k] + 1) <= 6
+%     )
+%   )
+% );
 
 function var int: fin(var int: i, int: j) = 
   if i > 0 /\ i < 2*(n-1) then
