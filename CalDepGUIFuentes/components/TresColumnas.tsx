@@ -15,43 +15,41 @@ const PrimeraColumna: React.FC<{
             </Typography>
             {/* Agrega aquí el logo */}
             <Typography variant="body1" gutterBottom>
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque
-                fermentum metus ac augue consequat, et bibendum urna ornare. Mauris
-                vehicula turpis vitae purus feugiat, ut vestibulum quam ullamcorper.
-                Proin vitae magna sed nulla euismod cursus. Donec vitae tincidunt
-                urna.
+                Para generar el calendario de eventos deportivos, ingrese el número de equipos que van a participar, el máximo y mínimo de encuentros continuos como visitante o de local y la fecha desde la que desea que se calcule.
             </Typography>
-            <TextField
-                label="Número de equipo"
-                type="number"
-                variant="outlined"
-                fullWidth
-                margin="normal"
-                onChange={onNumEquiposChange}
-                disabled={disabled}
-            />
-            <TextField
-                label="Tamaño mínimo de gira"
-                type="number"
-                variant="outlined"
-                fullWidth
-                margin="normal"
-            />
-            <TextField
-                label="Tamaño máximo de gira"
-                type="number"
-                variant="outlined"
-                fullWidth
-                margin="normal"
-            />
-            <TextField
-                label="Fecha de inicio"
-                type="date"
-                variant="outlined"
-                fullWidth
-                margin="normal"
-                InputLabelProps={{ shrink: true }}
-            />
+            <div className="parametros-equipos">
+                <TextField
+                    label="Número de equipo"
+                    type="number"
+                    variant="outlined"
+                    fullWidth
+                    margin="normal"
+                    onChange={onNumEquiposChange}
+                    disabled={disabled}
+                />
+                <TextField
+                    label="Tamaño mínimo de gira"
+                    type="number"
+                    variant="outlined"
+                    fullWidth
+                    margin="normal"
+                />
+                <TextField
+                    label="Tamaño máximo de gira"
+                    type="number"
+                    variant="outlined"
+                    fullWidth
+                    margin="normal"
+                />
+                <TextField
+                    label="Fecha de inicio"
+                    type="date"
+                    variant="outlined"
+                    fullWidth
+                    margin="normal"
+                    InputLabelProps={{ shrink: true }}
+                />
+            </div>
             <Button
                 variant="contained"
                 color="primary"
@@ -102,20 +100,30 @@ const TresColumnas: React.FC = () => {
 
     return (
         <div className="tres-columnas">
-            <PrimeraColumna
-                onIngresarDistancias={handleIngresarDistancias}
-                onNumEquiposChange={handleNumEquiposChange}
-                disabled={mostrarSegundaColumna}
-            />
-            {mostrarSegundaColumna && (
-                <SegundaColumna
-                    numEquipos={numEquipos}
-                    distancias={distancias}
-                    setDistancias={setDistancias}
-                    onGenerar={handleGenerar}
+
+            <div className="tres-columnas-header">
+                <Typography variant="h5" color="white" textAlign="center" gutterBottom>
+                    Calendario de eventos deportivos
+                </Typography>
+            </div>
+
+            <div className="columnas">
+                <PrimeraColumna
+                    onIngresarDistancias={handleIngresarDistancias}
+                    onNumEquiposChange={handleNumEquiposChange}
+                    disabled={mostrarSegundaColumna}
                 />
-            )}
-            <TerceraColumna />
+                {mostrarSegundaColumna && (
+                    <SegundaColumna
+                        numEquipos={numEquipos}
+                        distancias={distancias}
+                        setDistancias={setDistancias}
+                        onGenerar={handleGenerar}
+                    />
+                )}
+                <TerceraColumna />
+            </div>
+
         </div>
     );
 };
@@ -166,7 +174,9 @@ const SegundaColumna: React.FC<{
             <Typography variant="h5" gutterBottom>
                 Distancia entre locaciones
             </Typography>
-            {generarDistancias()}
+            <div className="distancias-inputs">
+                {generarDistancias()}
+            </div>
             <Button
                 variant="contained"
                 color="primary"
