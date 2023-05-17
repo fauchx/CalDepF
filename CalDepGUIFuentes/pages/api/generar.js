@@ -1,6 +1,8 @@
 import fs from 'fs';
 import { nanoid } from 'nanoid';
 import * as MiniZinc from 'minizinc';
+const { exec } = require('child_process');
+const path = require('path');
 
 export default async function handler(req, res) {
     if (req.method === 'POST') {
@@ -29,55 +31,38 @@ export default async function handler(req, res) {
 
         const modelPath = 'modelo/CalDep.mzn';
         const dataPath = `${fileName}`;
+        const minizincPath = 'node_modules/minizinc/dist/minizinc.js';
 
         fs.writeFile(fileName, content, async (err) => {
             if (err) {
                 res.status(500).json({ error: 'Error al escribir el archivo' });
             } else {
                 try {
-                    const model = new MiniZinc.Model();
-                    model.addFile(modelPath);
-                    //model.addDznString("n = 4; Min = 1; Max = 3; D = [|0,1,2,3|1,0,4,5|2,4,0,6|3,5,6,0|];");
-                    model.addFile(dataPath);
-                    const solve = model.solve({
-                        jsonOutput: true,
-                        options: {
-                            solver: 'gecode',
-                            timeout: 10000,
-                            statistics: true
-                        }
-                    });
-                    // You can listen for events
-                    solve.on('solution', solution => console.log(solution.output.json));
-                    solve.on('statistics', stats => console.log(stats.statistics));
-                    // And/or wait until complete
-                    solve.then(result => {
-                    console.log(result.solution.output.json);
-                    console.log(result.statistics);
-                    });
-                    
-                    solve.then(result => {
-                        res.status(200).json(result.solution.output.json);
-                        //console.log("SOLUCIÓN --------->", result.solution.output.json);
-                    });
+                    // Construct the command to execute the MiniZinc model
+                    const command = `minizinc ${modelPath} ${dataPath}`;//ERROR LOCALIZAR EJECUTABLE DE MINIZINC
 
-                    // Eliminar el archivo .dzn después de su uso
-                    fs.unlink(dataPath, (err) => {
-                        if (err) {
-                            console.error(err);
-                            return;
-                        }
-                    });
+                    // Execute the command using the child_process module
+                    exec(command, (error, stdout, stderr) => {
+                    if (error) {
+                        console.error('Error executing MiniZinc model:', error);
+                        res.status(500).json({ error: 'Failed to execute MiniZinc model' });
+                        return;
+                    }
 
-                    //res.status(200).json(solve);
+                    // Process the output or error messages from the command
+                    const result = stdout.trim();
+                    const errorOutput = stderr.trim();
+
+                    if (errorOutput) {
+                        console.error('Error executing MiniZinc model:', errorOutput);
+                        res.status(500).json({ error: 'Failed to execute MiniZinc model' });
+                        return;
+                    }
+
+                    // Handle the result of the MiniZinc execution
+                    res.status(200).json({ result });
+                    });
                 } catch (error) {
-                    // Elimina el archivo .dzn en caso de error
-                    fs.unlink(dataPath, (err) => {
-                        if (err) {
-                            console.error('UNLINK ERROR ->', err);
-                            return;
-                        }
-                    });
                     res.status(500).json({ error: 'Error al ejecutar el modelo MiniZinc', message: error.message });
                 }
             }
