@@ -1,6 +1,9 @@
 import fs from 'fs';
 import { nanoid } from 'nanoid';
-import MiniZinc from 'minizinc';
+import { exec as execCb } from 'child_process';
+import { promisify } from 'util';
+
+const exec = promisify(execCb);
 
 export default async function handler(req, res) {
     if (req.method === 'POST') {
@@ -26,25 +29,26 @@ export default async function handler(req, res) {
             content += row + (i === numEquipos ? '];' : '\n');
         }
 
-        fs.writeFile(fileName, content, async (err) => {
-            if (err) {
-                res.status(500).json({ error: 'Error al escribir el archivo' });
-            } else {
-                const minizinc = new MiniZinc();
-                const modelPath = 'modelo/CalDep.mzn';
-                const dataPath = `./${fileName}`;
+        fs.writeFileSync(fileName, content);
 
-                try {
-                    const result = await minizinc.solve(modelPath, dataPath, { outputMode: 'json' });
-                    fs.unlinkSync(dataPath); // Elimina el archivo .dzn después de su uso
-                    res.status(200).json(result);
-                } catch (error) {
-                    fs.unlinkSync(dataPath); // Elimina el archivo .dzn en caso de error
-                    res.status(500).json({ error: 'Error al ejecutar el modelo MiniZinc' });
-                }
-            }
-        });
+        try {
+            const { stdout, stderr } = await exec(`minizinc /../CalDep.mzn ${fileName}`);
+            //console.log(`${stdout}`, splitModelStdout(stdout));
+            res.status(200).json({ result: splitModelStdout(stdout) });
+        } catch (error) {
+            res.status(500).json({ error: 'Error al ejecutar el modelo MiniZinc' });
+        }
+
+        fs.unlinkSync(fileName); // Elimina el archivo .dzn después de su uso
+
     } else {
         res.status(405).json({ error: 'Método no permitido' });
     }
+}
+
+function splitModelStdout(stdout) {
+    const lines = stdout.split('\n');
+    // Remove the last four lines ("1025", "----------", "==========")
+    const relevantLines = lines.slice(0, -4);
+    return relevantLines.map(line => line.split(' ').map(Number));
 }
