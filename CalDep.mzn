@@ -1,37 +1,25 @@
 include "globals.mzn";
 
-% Declaración de parámetros
+% Parámetros
 int: n;
 array[1..n, 1..n] of int: D;
 int: Min;
 int: Max;
 
 set of int: fechas = 1..2*(n-1);
+set of int: equipos = 1..n;
 
-% Declaración de variables
-array[fechas, 1..n] of var -n..n: Cal;
+% Variables
+array[fechas, equipos] of var -n..n diff {0}: Cal;
 
 % Restricción 1
-constraint forall(i in 1..2*(n-1), j in 1..n) (
+constraint forall(i in fechas, j in equipos) (
   (Cal[i, j] > 0) -> (Cal[i, Cal[i, j]] = -j) /\ 
   (Cal[i, j] < 0) -> (Cal[i, abs(Cal[i, j])] = j)
 );
 
-% La restricción 2 se parte en estás dos restricciones:
-
-% Los elementos dentro de cada columna deben ser diferentes
-% -> un equipo debe enfrentarse a los otros
-constraint forall(j in 1..n) (
-  alldifferent([ Cal[i,j] | i in 1..2*(n-1)])
-);
-% Dentro de la columna j no puede estar el valor j ni -j
-% -> un equipo no puede jugar contra el mismo
-constraint forall(i in 1..2*(n-1), j in 1..n) (
-  Cal[i, j] != j /\ Cal[i, j] != -j
-);
-
 % Restricción 3
-constraint forall(i in 1..(2*(n-1)-1), j in 1..n) (
+constraint forall(i in 1..(2*(n-1)-1), j in equipos) (
   Cal[i, j] != -Cal[i+1, j]
 );
 
@@ -47,6 +35,26 @@ constraint forall(i in 1..(2*(n-1)-1), j in 1..n) (
 %     )
 %   )
 % );
+
+% Restricción 5
+constraint forall(j in equipos) (
+  alldifferent([ Cal[i,j] | i in fechas])
+);
+
+% Restricción 6
+constraint forall(i in fechas) (
+  alldifferent([ abs(Cal[i,j]) | j in equipos])
+);
+
+% Restricción 7
+constraint forall(i in fechas, j in equipos) (
+  Cal[i, j] != j /\ Cal[i, j] != -j
+);
+
+% Restricción 8
+constraint Cal[1,1] >= reverse([Cal[i,1] | i in fechas])[1];
+
+% - - - - - - - - - - - - - - - - - - - - - - - - -
 
 function var int: fin(var int: i, int: j) = 
   if i > 0 /\ i < 2*(n-1) then
@@ -67,8 +75,14 @@ function var int: calc_costo_gira(int: j) =
       ) + D[abs(Cal[fin(inicio[i], j), j]), j]
     );
 
-var int: costo_gira = sum(j in 1..n)(calc_costo_gira(j));
+var int: costo_giras = sum(j in equipos)(calc_costo_gira(j));
 
-solve minimize costo_gira;
+solve 
+%      :: int_search(Cal, input_order, indomain_max)
+%      :: int_search(Cal, input_order, indomain_random)
+%      :: int_search(Cal, first_fail, indomain_max)
+%      :: int_search(Cal, anti_first_fail, indomain_split)
+      minimize costo_giras;
+%satisfy;
 
-output [show(Cal[i,j]) ++ if j == n then "\n" else " " endif | i in 1..2*(n-1), j in 1..n] ++ [show(costo_gira)];
+output [show(Cal[i,j]) ++ if j == n then "\n" else " " endif | i in 1..2*(n-1), j in equipos] ++ [show(costo_giras)];
