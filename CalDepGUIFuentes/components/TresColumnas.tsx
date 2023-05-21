@@ -28,6 +28,7 @@ const PrimeraColumna: React.FC<{
                     margin="normal"
                     onChange={onNumEquiposChange}
                     disabled={disabled}
+                    inputProps={ {min: 0, inputMode: 'numeric'} }
                 />
                 <TextField
                     label="Tamaño mínimo de gira"
@@ -35,6 +36,8 @@ const PrimeraColumna: React.FC<{
                     variant="outlined"
                     fullWidth
                     margin="normal"
+                    disabled={disabled}
+                    inputProps={ {min: 0, inputMode: 'numeric'} }
                 />
                 <TextField
                     label="Tamaño máximo de gira"
@@ -42,6 +45,8 @@ const PrimeraColumna: React.FC<{
                     variant="outlined"
                     fullWidth
                     margin="normal"
+                    disabled={disabled}
+                    inputProps={ {min: 0, inputMode: 'numeric'} }
                 />
                 <TextField
                     label="Fecha de inicio"
@@ -49,6 +54,7 @@ const PrimeraColumna: React.FC<{
                     variant="outlined"
                     fullWidth
                     margin="normal"
+                    disabled={disabled}
                     InputLabelProps={{ shrink: true }}
                     onChange={onFechaInicioChange}
                 />
@@ -72,6 +78,7 @@ const TresColumnas: React.FC = () => {
     const [mostrarSegundaColumna, setMostrarSegundaColumna] = useState(false);
     const [fechaInicio, setFechaInicio] = useState<String>('');
     const [encuentros, setEncuentros] = useState<[]>([]);
+    const [mostrarFechas, setMostrarFechas] = useState(false);
 
     const handleIngresarDistancias = () => {
         setMostrarSegundaColumna(true);
@@ -91,6 +98,7 @@ const TresColumnas: React.FC = () => {
 
     const handleGenerar = async () => {
 
+        setMostrarFechas(true);
 
         const data = {
             numEquipos,
@@ -134,6 +142,7 @@ const TresColumnas: React.FC = () => {
                         distancias={distancias}
                         setDistancias={setDistancias}
                         onGenerar={handleGenerar}
+                        disabled={mostrarFechas}
                     />
                 )}
                 <TerceraColumna 
@@ -152,7 +161,8 @@ const SegundaColumna: React.FC<{
     distancias: Map<string, number>;
     setDistancias: (distancias: Map<string, number>) => void;
     onGenerar: any;
-}> = ({ numEquipos, distancias, setDistancias, onGenerar }) => {
+    disabled: boolean;
+}> = ({ numEquipos, distancias, setDistancias, onGenerar, disabled }) => {
     const handleDistanciaChange = (
         e: React.ChangeEvent<HTMLInputElement>,
         key: string
@@ -174,12 +184,13 @@ const SegundaColumna: React.FC<{
                         </Typography>
                         <TextField
                             type="number"
-                            value={distancias.get(key) || ''}
+                            //value={distancias.get(key) || ''}
                             /*@ts-ignore */
                             onChange={(e) => handleDistanciaChange(e, key)}
                             variant="outlined"
                             fullWidth
                             margin="normal"
+                            inputProps={ {min: 0, inputMode: 'numeric'} }
                         />
                     </div>
                 );
@@ -201,6 +212,7 @@ const SegundaColumna: React.FC<{
                 color="primary"
                 className="boton-generar"
                 onClick={onGenerar}
+                disabled={disabled}
             >
                 Generar
             </Button>
