@@ -6,8 +6,10 @@ import axios from 'axios';
 const PrimeraColumna: React.FC<{
     onIngresarDistancias: () => void;
     onNumEquiposChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onFechaInicioChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     disabled: boolean;
-}> = ({ onIngresarDistancias, onNumEquiposChange, disabled }) => {
+    
+}> = ({ onIngresarDistancias, onNumEquiposChange, onFechaInicioChange, disabled }) => {
     return (
         <div className="primera-columna">
             <Typography variant="h5" gutterBottom>
@@ -48,6 +50,7 @@ const PrimeraColumna: React.FC<{
                     fullWidth
                     margin="normal"
                     InputLabelProps={{ shrink: true }}
+                    onChange={onFechaInicioChange}
                 />
             </div>
             <Button
@@ -67,6 +70,8 @@ const TresColumnas: React.FC = () => {
     const [numEquipos, setNumEquipos] = useState<number>(0);
     const [distancias, setDistancias] = useState<Map<string, number>>(new Map());
     const [mostrarSegundaColumna, setMostrarSegundaColumna] = useState(false);
+    const [fechaInicio, setFechaInicio] = useState<String>('');
+    const [encuentros, setEncuentros] = useState<[]>([]);
 
     const handleIngresarDistancias = () => {
         setMostrarSegundaColumna(true);
@@ -76,6 +81,12 @@ const TresColumnas: React.FC = () => {
         e: React.ChangeEvent<HTMLInputElement>
     ) => {
         setNumEquipos(Number(e.target.value));
+    };
+    
+    const handleFechaInicioChange = (
+        e: React.ChangeEvent<HTMLInputElement>
+    ) => {
+        setFechaInicio(String(e.target.value));
     };
 
     const handleGenerar = async () => {
@@ -89,7 +100,9 @@ const TresColumnas: React.FC = () => {
         };
 
         try {
-            await axios.post('/api/generar', data);
+            await axios.post('/api/generar', data).then((res) => {
+                setEncuentros(res.data.result);
+            });
         } catch (error) {
             console.error('Error al generar:', error);
         }
@@ -111,6 +124,7 @@ const TresColumnas: React.FC = () => {
                 <PrimeraColumna
                     onIngresarDistancias={handleIngresarDistancias}
                     onNumEquiposChange={handleNumEquiposChange}
+                    onFechaInicioChange={handleFechaInicioChange}
                     disabled={mostrarSegundaColumna}
                 />
                 {mostrarSegundaColumna && (
@@ -121,7 +135,10 @@ const TresColumnas: React.FC = () => {
                         onGenerar={handleGenerar}
                     />
                 )}
-                <TerceraColumna />
+                <TerceraColumna 
+                    fechaInicio={fechaInicio}
+                    encuentros={encuentros}
+                />
             </div>
 
         </div>
@@ -189,10 +206,46 @@ const SegundaColumna: React.FC<{
     );
 };
 
-const TerceraColumna: React.FC = () => {
-    return (
-        <div className="tercera-columna">
+const TerceraColumna: React.FC <{ 
+    fechaInicio: String,
+    encuentros: []
+ }> = ( {fechaInicio, encuentros} ) => {
+    
+    const fechaInicioDate : string = fechaInicio.toString()+'T12:00:00';
+    var currentDate = new Date(fechaInicioDate);
 
+    const handleFechaCurrent = () => {
+        currentDate.setDate(currentDate.getDate() + 1);
+
+        return(
+            <Typography variant="h6" gutterBottom>
+                            Fecha {currentDate.toLocaleDateString()}
+            </Typography>
+        );
+    };
+
+    return (
+        <div className={Object.keys(encuentros).length === 0 ? 'tercera-columna' : 'tercera-columna-tournament-loaded'}>
+            <Typography variant="h5" gutterBottom>
+                Calendario Sugerido
+            </Typography>
+            <div className ='encuentros'>
+                {encuentros.map((encuentro: any, indexFecha: number) => (
+                    <div className="fecha">
+
+                         {handleFechaCurrent()}
+
+                        {encuentro.map((rival: any, indexEquipo: number) => (
+                            <div className="partido">
+                                <Typography variant="subtitle1" gutterBottom>
+                                    {'->'} {rival < 0 ? '(V)' : '(L)'} {indexEquipo + 1} vs {Math.abs(rival)} 
+                                </Typography>
+                            </div>
+                        ))}
+
+                    </div>
+                ))}
+            </div>  
         </div>
     );
 };

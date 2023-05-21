@@ -1,8 +1,9 @@
 import fs from 'fs';
 import { nanoid } from 'nanoid';
-import * as MiniZinc from 'minizinc';
-const { exec } = require('child_process');
-const path = require('path');
+import { exec as execCb } from 'child_process';
+import { promisify } from 'util';
+
+const exec = promisify(execCb);
 
 export default async function handler(req, res) {
     if (req.method === 'POST') {
@@ -27,47 +28,27 @@ export default async function handler(req, res) {
 
             content += row + (i === numEquipos ? '];' : '\n');
         }
-        console.log("filename:", fileName)
 
-        const modelPath = 'modelo/CalDep.mzn';
-        const dataPath = `${fileName}`;
-        const minizincPath = 'node_modules/minizinc/dist/minizinc.js';
+        fs.writeFileSync(fileName, content);
 
-        fs.writeFile(fileName, content, async (err) => {
-            if (err) {
-                res.status(500).json({ error: 'Error al escribir el archivo' });
-            } else {
-                try {
-                    // Construct the command to execute the MiniZinc model
-                    const command = `minizinc ${modelPath} ${dataPath}`;//ERROR LOCALIZAR EJECUTABLE DE MINIZINC
+        try {
+            const { stdout, stderr } = await exec(`minizinc /../CalDep.mzn ${fileName}`);
+            //console.log(`${stdout}`, splitModelStdout(stdout));
+            res.status(200).json({ result: splitModelStdout(stdout) });
+        } catch (error) {
+            res.status(500).json({ error: 'Error al ejecutar el modelo MiniZinc' });
+        }
 
-                    // Execute the command using the child_process module
-                    exec(command, (error, stdout, stderr) => {
-                    if (error) {
-                        console.error('Error executing MiniZinc model:', error);
-                        res.status(500).json({ error: 'Failed to execute MiniZinc model' });
-                        return;
-                    }
+        fs.unlinkSync(fileName); // Elimina el archivo .dzn después de su uso
 
-                    // Process the output or error messages from the command
-                    const result = stdout.trim();
-                    const errorOutput = stderr.trim();
-
-                    if (errorOutput) {
-                        console.error('Error executing MiniZinc model:', errorOutput);
-                        res.status(500).json({ error: 'Failed to execute MiniZinc model' });
-                        return;
-                    }
-
-                    // Handle the result of the MiniZinc execution
-                    res.status(200).json({ result });
-                    });
-                } catch (error) {
-                    res.status(500).json({ error: 'Error al ejecutar el modelo MiniZinc', message: error.message });
-                }
-            }
-        });
     } else {
         res.status(405).json({ error: 'Método no permitido' });
     }
+}
+
+function splitModelStdout(stdout) {
+    const lines = stdout.split('\n');
+    // Remove the last four lines ("1025", "----------", "==========")
+    const relevantLines = lines.slice(0, -4);
+    return relevantLines.map(line => line.split(' ').map(Number));
 }
