@@ -102,6 +102,7 @@ const TresColumnas: React.FC = () => {
         try {
             await axios.post('/api/generar', data).then((res) => {
                 setEncuentros(res.data.result);
+                console.log(res.data.result);
             });
         } catch (error) {
             console.error('Error al generar:', error);
@@ -138,6 +139,7 @@ const TresColumnas: React.FC = () => {
                 <TerceraColumna 
                     fechaInicio={fechaInicio}
                     encuentros={encuentros}
+                    numEquipos={numEquipos}
                 />
             </div>
 
@@ -208,24 +210,50 @@ const SegundaColumna: React.FC<{
 
 const TerceraColumna: React.FC <{ 
     fechaInicio: String,
-    encuentros: []
- }> = ( {fechaInicio, encuentros} ) => {
+    encuentros: [],
+    numEquipos: number
+ }> = ( {fechaInicio, encuentros, numEquipos} ) => {
     
-    const fechaInicioDate : string = fechaInicio.toString()+'T12:00:00';
-    var currentDate = new Date(fechaInicioDate);
+    const fechaInicioDate : Date = new Date (fechaInicio.toString()+'T12:00:00');
+    var currentDate : Date;
+    var matches : any = {}; //Variable que sirve para verifica si ya se registró un partido para un equipo en una fecha particular
 
-    const handleFechaCurrent = () => {
-        currentDate.setDate(currentDate.getDate() + 1);
+    const handleFechaCurrent = (indexFecha :  number) => {
+        currentDate = new Date(fechaInicioDate);
+        currentDate.setDate(currentDate.getDate() + indexFecha);
 
         return(
-            <Typography variant="h6" gutterBottom>
-                            Fecha {currentDate.toLocaleDateString()}
+            <Typography variant="subtitle2" gutterBottom>
+                            {currentDate.toLocaleDateString()}
             </Typography>
         );
     };
 
+    const handlePartidos = (rival : number, equipo :  number) => {;
+        
+        if (!(Math.abs(rival) in matches)) {
+
+            if (equipo === numEquipos) {
+                matches = {};
+            } else {
+                matches[equipo] = rival;
+            }
+
+            return (
+                <div className="partido">
+                        <Typography variant="subtitle1" gutterBottom>
+                            Partido  {rival < 0 ? '(V)' : '(L)'} Equipo {equipo} vs Equipo {Math.abs(rival)} 
+                        </Typography>
+                </div>
+            );
+        } else if (equipo === numEquipos) {
+            matches = {};
+        }
+
+    };
+
     return (
-        <div className={Object.keys(encuentros).length === 0 ? 'tercera-columna' : 'tercera-columna-tournament-loaded'}>
+        <div className={Object.keys(encuentros).length === 0 ? 'tercera-columna no-tournament-loaded' : 'tercera-columna'}>
             <Typography variant="h5" gutterBottom>
                 Calendario Sugerido
             </Typography>
@@ -233,16 +261,17 @@ const TerceraColumna: React.FC <{
                 {encuentros.map((encuentro: any, indexFecha: number) => (
                     <div className="fecha">
 
-                         {handleFechaCurrent()}
+                        <div className='date'>
+                            {handleFechaCurrent(indexFecha)}
+                            <div className='linea'></div>
+                        </div>
 
-                        {encuentro.map((rival: any, indexEquipo: number) => (
-                            <div className="partido">
-                                <Typography variant="subtitle1" gutterBottom>
-                                    {'->'} {rival < 0 ? '(V)' : '(L)'} {indexEquipo + 1} vs {Math.abs(rival)} 
-                                </Typography>
-                            </div>
-                        ))}
-
+                        <div className='partidos'>
+                            {encuentro.map((rival: number, indexEquipo: number) => (
+                                handlePartidos(rival, indexEquipo + 1)
+                            ))}
+                        </div>
+                        
                     </div>
                 ))}
             </div>  
