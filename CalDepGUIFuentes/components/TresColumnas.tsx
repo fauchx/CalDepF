@@ -79,6 +79,7 @@ const TresColumnas: React.FC = () => {
     const [mostrarSegundaColumna, setMostrarSegundaColumna] = useState(false);
     const [fechaInicio, setFechaInicio] = useState<String>('');
     const [encuentros, setEncuentros] = useState<[]>([]);
+    const [costo, setCosto] = useState<number>(0);
     const [mostrarFechas, setMostrarFechas] = useState(false);
     const [loading, setLoading] = useState(false);
 
@@ -113,6 +114,7 @@ const TresColumnas: React.FC = () => {
         try {
             await axios.post('/api/generar', data).then((res) => {
                 setEncuentros(res.data.result);
+                setCosto(res.data.cost);
                 setLoading(false);
             });
         } catch (error) {
@@ -152,6 +154,7 @@ const TresColumnas: React.FC = () => {
                 <TerceraColumna 
                     fechaInicio={fechaInicio}
                     encuentros={encuentros}
+                    costo={costo}
                     numEquipos={numEquipos}
                     loading={loading}
                 />
@@ -228,9 +231,10 @@ const SegundaColumna: React.FC<{
 const TerceraColumna: React.FC <{ 
     fechaInicio: String,
     encuentros: [],
+    costo: number,
     numEquipos: number
     loading: boolean
- }> = ( {fechaInicio, encuentros, numEquipos, loading} ) => {
+ }> = ( {fechaInicio, encuentros, costo, numEquipos, loading} ) => {
     
     const [chargedRequest, setChargedRequest] = useState(false);
     const fechaInicioDate : Date = new Date (fechaInicio.toString()+'T12:00:00');
@@ -283,9 +287,19 @@ const TerceraColumna: React.FC <{
 
     return (
         <div className={ chargedRequest ? 'tercera-columna' : 'tercera-columna no-tournament-loaded'}>
-            <Typography variant="h5" gutterBottom>
-                Calendario Sugerido
-            </Typography>
+            <div className='header-tercera-columna'>
+                <Typography variant="h5" gutterBottom>
+                    Calendario Sugerido
+                </Typography>
+                { chargedRequest &&
+                    <div className='costo-resultado'>
+                        <Typography variant="subtitle1" gutterBottom>
+                            Costo: {costo}
+                        </Typography> 
+                    </div>
+                }
+            </div>
+
             {loading ? (
                 <Loader />
             ) : (
