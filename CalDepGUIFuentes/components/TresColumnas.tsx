@@ -1,13 +1,16 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button, TextField, Typography } from '@mui/material';
+import Loader from './Loader';
 import axios from 'axios';
 
 
 const PrimeraColumna: React.FC<{
     onIngresarDistancias: () => void;
     onNumEquiposChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onFechaInicioChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     disabled: boolean;
-}> = ({ onIngresarDistancias, onNumEquiposChange, disabled }) => {
+    
+}> = ({ onIngresarDistancias, onNumEquiposChange, onFechaInicioChange, disabled }) => {
     return (
         <div className="primera-columna">
             <Typography variant="h5" gutterBottom>
@@ -15,43 +18,48 @@ const PrimeraColumna: React.FC<{
             </Typography>
             {/* Agrega aquí el logo */}
             <Typography variant="body1" gutterBottom>
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque
-                fermentum metus ac augue consequat, et bibendum urna ornare. Mauris
-                vehicula turpis vitae purus feugiat, ut vestibulum quam ullamcorper.
-                Proin vitae magna sed nulla euismod cursus. Donec vitae tincidunt
-                urna.
+                Para generar el calendario de eventos deportivos, ingrese el número de equipos que van a participar, el máximo y mínimo de encuentros continuos como visitante o de local y la fecha desde la que desea que se calcule.
             </Typography>
-            <TextField
-                label="Número de equipo"
-                type="number"
-                variant="outlined"
-                fullWidth
-                margin="normal"
-                onChange={onNumEquiposChange}
-                disabled={disabled}
-            />
-            <TextField
-                label="Tamaño mínimo de gira"
-                type="number"
-                variant="outlined"
-                fullWidth
-                margin="normal"
-            />
-            <TextField
-                label="Tamaño máximo de gira"
-                type="number"
-                variant="outlined"
-                fullWidth
-                margin="normal"
-            />
-            <TextField
-                label="Fecha de inicio"
-                type="date"
-                variant="outlined"
-                fullWidth
-                margin="normal"
-                InputLabelProps={{ shrink: true }}
-            />
+            <div className="parametros-equipos">
+                <TextField
+                    label="Número de equipo"
+                    type="number"
+                    variant="outlined"
+                    fullWidth
+                    margin="normal"
+                    onChange={onNumEquiposChange}
+                    disabled={disabled}
+                    inputProps={ {min: 0, inputMode: 'numeric'} }
+                />
+                <TextField
+                    label="Tamaño mínimo de gira"
+                    type="number"
+                    variant="outlined"
+                    fullWidth
+                    margin="normal"
+                    disabled={disabled}
+                    inputProps={ {min: 0, inputMode: 'numeric'} }
+                />
+                <TextField
+                    label="Tamaño máximo de gira"
+                    type="number"
+                    variant="outlined"
+                    fullWidth
+                    margin="normal"
+                    disabled={disabled}
+                    inputProps={ {min: 0, inputMode: 'numeric'} }
+                />
+                <TextField
+                    label="Fecha de inicio"
+                    type="date"
+                    variant="outlined"
+                    fullWidth
+                    margin="normal"
+                    disabled={disabled}
+                    InputLabelProps={{ shrink: true }}
+                    onChange={onFechaInicioChange}
+                />
+            </div>
             <Button
                 variant="contained"
                 color="primary"
@@ -69,6 +77,10 @@ const TresColumnas: React.FC = () => {
     const [numEquipos, setNumEquipos] = useState<number>(0);
     const [distancias, setDistancias] = useState<Map<string, number>>(new Map());
     const [mostrarSegundaColumna, setMostrarSegundaColumna] = useState(false);
+    const [fechaInicio, setFechaInicio] = useState<String>('');
+    const [encuentros, setEncuentros] = useState<[]>([]);
+    const [mostrarFechas, setMostrarFechas] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     const handleIngresarDistancias = () => {
         setMostrarSegundaColumna(true);
@@ -79,9 +91,17 @@ const TresColumnas: React.FC = () => {
     ) => {
         setNumEquipos(Number(e.target.value));
     };
+    
+    const handleFechaInicioChange = (
+        e: React.ChangeEvent<HTMLInputElement>
+    ) => {
+        setFechaInicio(String(e.target.value));
+    };
 
     const handleGenerar = async () => {
 
+        setMostrarFechas(true);
+        setLoading(true);
 
         const data = {
             numEquipos,
@@ -91,9 +111,13 @@ const TresColumnas: React.FC = () => {
         };
 
         try {
-            await axios.post('/api/generar', data);
+            await axios.post('/api/generar', data).then((res) => {
+                setEncuentros(res.data.result);
+                setLoading(false);
+            });
         } catch (error) {
             console.error('Error al generar:', error);
+            setLoading(false);
         }
 
     };
@@ -102,20 +126,37 @@ const TresColumnas: React.FC = () => {
 
     return (
         <div className="tres-columnas">
-            <PrimeraColumna
-                onIngresarDistancias={handleIngresarDistancias}
-                onNumEquiposChange={handleNumEquiposChange}
-                disabled={mostrarSegundaColumna}
-            />
-            {mostrarSegundaColumna && (
-                <SegundaColumna
-                    numEquipos={numEquipos}
-                    distancias={distancias}
-                    setDistancias={setDistancias}
-                    onGenerar={handleGenerar}
+
+            <div className="tres-columnas-header">
+                <Typography variant="h5" color="white" textAlign="center" gutterBottom>
+                    Calendario de eventos deportivos
+                </Typography>
+            </div>
+
+            <div className="columnas">
+                <PrimeraColumna
+                    onIngresarDistancias={handleIngresarDistancias}
+                    onNumEquiposChange={handleNumEquiposChange}
+                    onFechaInicioChange={handleFechaInicioChange}
+                    disabled={mostrarSegundaColumna}
                 />
-            )}
-            <TerceraColumna />
+                {mostrarSegundaColumna && (
+                    <SegundaColumna
+                        numEquipos={numEquipos}
+                        distancias={distancias}
+                        setDistancias={setDistancias}
+                        onGenerar={handleGenerar}
+                        disabled={mostrarFechas}
+                    />
+                )}
+                <TerceraColumna 
+                    fechaInicio={fechaInicio}
+                    encuentros={encuentros}
+                    numEquipos={numEquipos}
+                    loading={loading}
+                />
+            </div>
+
         </div>
     );
 };
@@ -125,7 +166,8 @@ const SegundaColumna: React.FC<{
     distancias: Map<string, number>;
     setDistancias: (distancias: Map<string, number>) => void;
     onGenerar: any;
-}> = ({ numEquipos, distancias, setDistancias, onGenerar }) => {
+    disabled: boolean;
+}> = ({ numEquipos, distancias, setDistancias, onGenerar, disabled }) => {
     const handleDistanciaChange = (
         e: React.ChangeEvent<HTMLInputElement>,
         key: string
@@ -147,12 +189,13 @@ const SegundaColumna: React.FC<{
                         </Typography>
                         <TextField
                             type="number"
-                            value={distancias.get(key) || ''}
+                            //value={distancias.get(key) || ''}
                             /*@ts-ignore */
                             onChange={(e) => handleDistanciaChange(e, key)}
                             variant="outlined"
                             fullWidth
                             margin="normal"
+                            inputProps={ {min: 0, inputMode: 'numeric'} }
                         />
                     </div>
                 );
@@ -166,12 +209,15 @@ const SegundaColumna: React.FC<{
             <Typography variant="h5" gutterBottom>
                 Distancia entre locaciones
             </Typography>
-            {generarDistancias()}
+            <div className="distancias-inputs">
+                {generarDistancias()}
+            </div>
             <Button
                 variant="contained"
                 color="primary"
                 className="boton-generar"
                 onClick={onGenerar}
+                disabled={disabled}
             >
                 Generar
             </Button>
@@ -179,10 +225,94 @@ const SegundaColumna: React.FC<{
     );
 };
 
-const TerceraColumna: React.FC = () => {
-    return (
-        <div className="tercera-columna">
+const TerceraColumna: React.FC <{ 
+    fechaInicio: String,
+    encuentros: [],
+    numEquipos: number
+    loading: boolean
+ }> = ( {fechaInicio, encuentros, numEquipos, loading} ) => {
+    
+    const [chargedRequest, setChargedRequest] = useState(false);
+    const fechaInicioDate : Date = new Date (fechaInicio.toString()+'T12:00:00');
+    var currentDate : Date;
+    var matches : any = {}; //Variable que sirve para verifica si ya se registró un partido para un equipo en una fecha particular
 
+    const handleFechaCurrent = (indexFecha :  number) => {
+        currentDate = new Date(fechaInicioDate);
+        currentDate.setDate(currentDate.getDate() + indexFecha);
+
+        return(
+            <Typography variant="subtitle2" gutterBottom>
+                            {currentDate.toLocaleDateString()}
+            </Typography>
+        );
+    };
+
+    useEffect(() => {
+        if(!chargedRequest && loading){
+            setChargedRequest(true);
+        }
+    }, [loading]);
+
+    const handleRefresh = () => {
+        window.location.reload();
+    }
+
+    const handlePartidos = (rival : number, equipo :  number) => {;
+        
+        if (!(Math.abs(rival) in matches)) {
+
+            if (equipo === numEquipos) {
+                matches = {};
+            } else {
+                matches[equipo] = rival;
+            }
+
+            return (
+                <div className="partido">
+                        <Typography variant="subtitle1" gutterBottom>
+                            Partido  {rival < 0 ? '(V)' : '(L)'} Equipo {equipo} vs Equipo {Math.abs(rival)} 
+                        </Typography>
+                </div>
+            );
+        } else if (equipo === numEquipos) {
+            matches = {};
+        }
+
+    };
+
+    return (
+        <div className={ chargedRequest ? 'tercera-columna' : 'tercera-columna no-tournament-loaded'}>
+            <Typography variant="h5" gutterBottom>
+                Calendario Sugerido
+            </Typography>
+            {loading ? (
+                <Loader />
+            ) : (
+                <div className ='encuentros'>
+                    {encuentros.map((encuentro: any, indexFecha: number) => (
+                        <div className="fecha">
+
+                            <div className='date'>
+                                {handleFechaCurrent(indexFecha)}
+                                <div className='linea'></div>
+                            </div>
+
+                            <div className='partidos'>
+                                {encuentro.map((rival: number, indexEquipo: number) => (
+                                    handlePartidos(rival, indexEquipo + 1)
+                                ))}
+                            </div>
+                            
+                        </div>
+                    ))}
+                </div>
+            )}
+            { chargedRequest &&
+                <Button variant="contained" color="primary" className="boton-generar" onClick={handleRefresh} >
+                    Reset
+                </Button>
+            }
         </div>
     );
 };
