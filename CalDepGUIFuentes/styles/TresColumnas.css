@@ -84,6 +84,15 @@
     background-position: center;
     background-repeat: no-repeat;
   }
+  .header-tercera-columna{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+  }
+  .costo-resultado{
+    margin-left: 20px;
+    opacity: 0.5;
+  }
   .loader-container{
     width: 100%;
     height: 100%;

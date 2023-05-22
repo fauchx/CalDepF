@@ -34,7 +34,8 @@ export default async function handler(req, res) {
         try {
             const { stdout, stderr } = await exec(`minizinc /../CalDep.mzn ${fileName}`);
             //console.log(`${stdout}`, splitModelStdout(stdout));
-            res.status(200).json({ result: splitModelStdout(stdout) });
+            const {result, cost} = splitModelStdout(stdout);
+            res.status(200).json({ result: result, cost: cost });
         } catch (error) {
             res.status(500).json({ error: 'Error al ejecutar el modelo MiniZinc' });
         }
@@ -50,5 +51,7 @@ function splitModelStdout(stdout) {
     const lines = stdout.split('\n');
     // Remove the last four lines ("1025", "----------", "==========")
     const relevantLines = lines.slice(0, -4);
-    return relevantLines.map(line => line.split(' ').map(Number));
+    const cost = Number(lines.slice(-4, -3));
+    const result = relevantLines.map(line => line.split(' ').map(Number))
+    return {result, cost};
 }

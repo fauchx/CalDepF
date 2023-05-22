@@ -1,6 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { Button, TextField, Typography } from '@mui/material';
+import React, { use, useEffect, useState } from 'react';
+import { Button, TextField, Typography, Switch } from '@mui/material';
+import MuiSwitch from './MuiSwitch';
 import Loader from './Loader';
+import Canva from './Canva';
 import axios from 'axios';
 
 
@@ -8,9 +10,10 @@ const PrimeraColumna: React.FC<{
     onIngresarDistancias: () => void;
     onNumEquiposChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onFechaInicioChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    setEscribirDistancias: React.Dispatch<React.SetStateAction<boolean>>;
     disabled: boolean;
     
-}> = ({ onIngresarDistancias, onNumEquiposChange, onFechaInicioChange, disabled }) => {
+}> = ({ onIngresarDistancias, onNumEquiposChange, onFechaInicioChange,setEscribirDistancias, disabled }) => {
     return (
         <div className="primera-columna">
             <Typography variant="h5" gutterBottom>
@@ -59,6 +62,7 @@ const PrimeraColumna: React.FC<{
                     InputLabelProps={{ shrink: true }}
                     onChange={onFechaInicioChange}
                 />
+                <MuiSwitch labelText='Ingresar distancias manualmente:' setState={setEscribirDistancias}/>
             </div>
             <Button
                 variant="contained"
@@ -77,8 +81,10 @@ const TresColumnas: React.FC = () => {
     const [numEquipos, setNumEquipos] = useState<number>(0);
     const [distancias, setDistancias] = useState<Map<string, number>>(new Map());
     const [mostrarSegundaColumna, setMostrarSegundaColumna] = useState(false);
+    const [escribirDistancias, setEscribirDistancias] = useState<boolean>(true);
     const [fechaInicio, setFechaInicio] = useState<String>('');
     const [encuentros, setEncuentros] = useState<[]>([]);
+    const [costo, setCosto] = useState<number>(0);
     const [mostrarFechas, setMostrarFechas] = useState(false);
     const [loading, setLoading] = useState(false);
 
@@ -107,12 +113,13 @@ const TresColumnas: React.FC = () => {
             numEquipos,
             minTamañoGira: 1,
             maxTamañoGira: 3,
-            distancias: Object.fromEntries(distancias),
+            distancias: escribirDistancias ? Object.fromEntries(distancias) : distancias,
         };
 
         try {
             await axios.post('/api/generar', data).then((res) => {
                 setEncuentros(res.data.result);
+                setCosto(res.data.cost);
                 setLoading(false);
             });
         } catch (error) {
@@ -138,6 +145,7 @@ const TresColumnas: React.FC = () => {
                     onIngresarDistancias={handleIngresarDistancias}
                     onNumEquiposChange={handleNumEquiposChange}
                     onFechaInicioChange={handleFechaInicioChange}
+                    setEscribirDistancias={setEscribirDistancias}
                     disabled={mostrarSegundaColumna}
                 />
                 {mostrarSegundaColumna && (
@@ -146,12 +154,15 @@ const TresColumnas: React.FC = () => {
                         distancias={distancias}
                         setDistancias={setDistancias}
                         onGenerar={handleGenerar}
+                        escribirDistancias={escribirDistancias}
                         disabled={mostrarFechas}
+                        
                     />
                 )}
                 <TerceraColumna 
                     fechaInicio={fechaInicio}
                     encuentros={encuentros}
+                    costo={costo}
                     numEquipos={numEquipos}
                     loading={loading}
                 />
@@ -166,8 +177,9 @@ const SegundaColumna: React.FC<{
     distancias: Map<string, number>;
     setDistancias: (distancias: Map<string, number>) => void;
     onGenerar: any;
+    escribirDistancias: boolean;
     disabled: boolean;
-}> = ({ numEquipos, distancias, setDistancias, onGenerar, disabled }) => {
+}> = ({ numEquipos, distancias, setDistancias, onGenerar, escribirDistancias, disabled }) => {
     const handleDistanciaChange = (
         e: React.ChangeEvent<HTMLInputElement>,
         key: string
@@ -210,7 +222,7 @@ const SegundaColumna: React.FC<{
                 Distancia entre locaciones
             </Typography>
             <div className="distancias-inputs">
-                {generarDistancias()}
+                {escribirDistancias ? generarDistancias() : <Canva numeroEquipos={numEquipos} setDistancias={setDistancias} />}	  
             </div>
             <Button
                 variant="contained"
@@ -228,9 +240,10 @@ const SegundaColumna: React.FC<{
 const TerceraColumna: React.FC <{ 
     fechaInicio: String,
     encuentros: [],
+    costo: number,
     numEquipos: number
     loading: boolean
- }> = ( {fechaInicio, encuentros, numEquipos, loading} ) => {
+ }> = ( {fechaInicio, encuentros, costo, numEquipos, loading} ) => {
     
     const [chargedRequest, setChargedRequest] = useState(false);
     const fechaInicioDate : Date = new Date (fechaInicio.toString()+'T12:00:00');
@@ -283,9 +296,19 @@ const TerceraColumna: React.FC <{
 
     return (
         <div className={ chargedRequest ? 'tercera-columna' : 'tercera-columna no-tournament-loaded'}>
-            <Typography variant="h5" gutterBottom>
-                Calendario Sugerido
-            </Typography>
+            <div className='header-tercera-columna'>
+                <Typography variant="h5" gutterBottom>
+                    Calendario Sugerido
+                </Typography>
+                { chargedRequest &&
+                    <div className='costo-resultado'>
+                        <Typography variant="subtitle1" gutterBottom>
+                            Costo: {costo}
+                        </Typography> 
+                    </div>
+                }
+            </div>
+
             {loading ? (
                 <Loader />
             ) : (
