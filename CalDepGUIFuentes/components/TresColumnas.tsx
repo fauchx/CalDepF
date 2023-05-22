@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button, TextField, Typography } from '@mui/material';
+import Loader from './Loader';
 import axios from 'axios';
 
 
@@ -79,6 +80,7 @@ const TresColumnas: React.FC = () => {
     const [fechaInicio, setFechaInicio] = useState<String>('');
     const [encuentros, setEncuentros] = useState<[]>([]);
     const [mostrarFechas, setMostrarFechas] = useState(false);
+    const [loading, setLoading] = useState(false);
 
     const handleIngresarDistancias = () => {
         setMostrarSegundaColumna(true);
@@ -99,6 +101,7 @@ const TresColumnas: React.FC = () => {
     const handleGenerar = async () => {
 
         setMostrarFechas(true);
+        setLoading(true);
 
         const data = {
             numEquipos,
@@ -110,10 +113,11 @@ const TresColumnas: React.FC = () => {
         try {
             await axios.post('/api/generar', data).then((res) => {
                 setEncuentros(res.data.result);
-                console.log(res.data.result);
+                setLoading(false);
             });
         } catch (error) {
             console.error('Error al generar:', error);
+            setLoading(false);
         }
 
     };
@@ -149,6 +153,7 @@ const TresColumnas: React.FC = () => {
                     fechaInicio={fechaInicio}
                     encuentros={encuentros}
                     numEquipos={numEquipos}
+                    loading={loading}
                 />
             </div>
 
@@ -224,8 +229,10 @@ const TerceraColumna: React.FC <{
     fechaInicio: String,
     encuentros: [],
     numEquipos: number
- }> = ( {fechaInicio, encuentros, numEquipos} ) => {
+    loading: boolean
+ }> = ( {fechaInicio, encuentros, numEquipos, loading} ) => {
     
+    const [chargedRequest, setChargedRequest] = useState(false);
     const fechaInicioDate : Date = new Date (fechaInicio.toString()+'T12:00:00');
     var currentDate : Date;
     var matches : any = {}; //Variable que sirve para verifica si ya se registró un partido para un equipo en una fecha particular
@@ -240,6 +247,16 @@ const TerceraColumna: React.FC <{
             </Typography>
         );
     };
+
+    useEffect(() => {
+        if(!chargedRequest && loading){
+            setChargedRequest(true);
+        }
+    }, [loading]);
+
+    const handleRefresh = () => {
+        window.location.reload();
+    }
 
     const handlePartidos = (rival : number, equipo :  number) => {;
         
@@ -265,28 +282,37 @@ const TerceraColumna: React.FC <{
     };
 
     return (
-        <div className={Object.keys(encuentros).length === 0 ? 'tercera-columna no-tournament-loaded' : 'tercera-columna'}>
+        <div className={ chargedRequest ? 'tercera-columna' : 'tercera-columna no-tournament-loaded'}>
             <Typography variant="h5" gutterBottom>
                 Calendario Sugerido
             </Typography>
-            <div className ='encuentros'>
-                {encuentros.map((encuentro: any, indexFecha: number) => (
-                    <div className="fecha">
+            {loading ? (
+                <Loader />
+            ) : (
+                <div className ='encuentros'>
+                    {encuentros.map((encuentro: any, indexFecha: number) => (
+                        <div className="fecha">
 
-                        <div className='date'>
-                            {handleFechaCurrent(indexFecha)}
-                            <div className='linea'></div>
-                        </div>
+                            <div className='date'>
+                                {handleFechaCurrent(indexFecha)}
+                                <div className='linea'></div>
+                            </div>
 
-                        <div className='partidos'>
-                            {encuentro.map((rival: number, indexEquipo: number) => (
-                                handlePartidos(rival, indexEquipo + 1)
-                            ))}
+                            <div className='partidos'>
+                                {encuentro.map((rival: number, indexEquipo: number) => (
+                                    handlePartidos(rival, indexEquipo + 1)
+                                ))}
+                            </div>
+                            
                         </div>
-                        
-                    </div>
-                ))}
-            </div>  
+                    ))}
+                </div>
+            )}
+            { chargedRequest &&
+                <Button variant="contained" color="primary" className="boton-generar" onClick={handleRefresh} >
+                    Reset
+                </Button>
+            }
         </div>
     );
 };
