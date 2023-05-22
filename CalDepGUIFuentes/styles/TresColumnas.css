@@ -160,7 +160,7 @@
       flex-direction: column;
     }
     .tercera-columna{
-      height: 600px;
+      min-height: 600px;
     }
     .encuentros{
       height: auto;
