@@ -1,6 +1,7 @@
 import React, { use, useEffect, useState } from 'react';
 import { Button, TextField, Typography, Switch } from '@mui/material';
 import MuiSwitch from './MuiSwitch';
+import MuiSelect from './MuiSelect';
 import Loader from './Loader';
 import Canva from './Canva';
 import axios from 'axios';
@@ -11,9 +12,17 @@ const PrimeraColumna: React.FC<{
     onNumEquiposChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onFechaInicioChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     setEscribirDistancias: React.Dispatch<React.SetStateAction<boolean>>;
+    objetivo: string;
+    setObjetivo: React.Dispatch<React.SetStateAction<string>>;
     disabled: boolean;
     
-}> = ({ onIngresarDistancias, onNumEquiposChange, onFechaInicioChange,setEscribirDistancias, disabled }) => {
+}> = ({ onIngresarDistancias,
+    onNumEquiposChange,
+    onFechaInicioChange,
+    setEscribirDistancias,
+    objetivo, 
+    setObjetivo, 
+    disabled }) => {
     return (
         <div className="primera-columna">
             <Typography variant="h5" gutterBottom>
@@ -63,6 +72,7 @@ const PrimeraColumna: React.FC<{
                     onChange={onFechaInicioChange}
                 />
                 <MuiSwitch labelText='Ingresar distancias manualmente:' setState={setEscribirDistancias}/>
+                <MuiSelect label='Objetivo' objetivo={objetivo} setObjetivo={setObjetivo}/>
             </div>
             <Button
                 variant="contained"
@@ -87,6 +97,7 @@ const TresColumnas: React.FC = () => {
     const [costo, setCosto] = useState<number>(0);
     const [mostrarFechas, setMostrarFechas] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [objetivo, setObjetivo] = useState<string>('optimizar');
 
     const handleIngresarDistancias = () => {
         setMostrarSegundaColumna(true);
@@ -114,6 +125,7 @@ const TresColumnas: React.FC = () => {
             minTamañoGira: 1,
             maxTamañoGira: 3,
             distancias: escribirDistancias ? Object.fromEntries(distancias) : distancias,
+            objetivo: objetivo,
         };
 
         try {
@@ -146,6 +158,8 @@ const TresColumnas: React.FC = () => {
                     onNumEquiposChange={handleNumEquiposChange}
                     onFechaInicioChange={handleFechaInicioChange}
                     setEscribirDistancias={setEscribirDistancias}
+                    objetivo={objetivo}
+                    setObjetivo={setObjetivo}
                     disabled={mostrarSegundaColumna}
                 />
                 {mostrarSegundaColumna && (
