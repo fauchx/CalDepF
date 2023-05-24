@@ -147,7 +147,7 @@ const TresColumnas: React.FC = () => {
         <div className="tres-columnas">
 
             <div className="tres-columnas-header">
-                <Typography variant="h5" color="white" textAlign="center" gutterBottom>
+                <Typography variant="h4" className='m-0' color="white" textAlign="center" gutterBottom>
                     Calendario de eventos deportivos
                 </Typography>
             </div>
@@ -317,7 +317,7 @@ const TerceraColumna: React.FC <{
                 { chargedRequest &&
                     <div className='costo-resultado'>
                         <Typography variant="subtitle1" gutterBottom>
-                            Costo: {costo}
+                            Costo de giras: {costo}
                         </Typography> 
                     </div>
                 }

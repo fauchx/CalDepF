@@ -1,4 +1,6 @@
-  .tres-columnas{
+@import url('./globals.css');
+
+.tres-columnas{
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -7,6 +9,12 @@
     box-shadow: 0 0 30px rgba(52, 52, 52, 0.5);
     border-radius: 13px;
     overflow: hidden;
+    background: linear-gradient(
+      to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))
+    )
+    rgb(var(--background-start-rgb));
   }
 
   .tres-columnas-header{
@@ -40,6 +48,7 @@
     gap: 0.5rem;
     overflow-y: auto;
     height: 60%;
+    padding-right: 1rem;
   }
   
   .boton-distancias {
@@ -59,7 +68,13 @@
     padding: 15px;
     overflow-y: auto;
   }
-
+  .canva{
+    width: 450px;
+    height: 450px;
+    position: relative;
+    border: 1px solid black;
+    overflow: hidden;
+  }
   .distancia-item {
     display: flex;
     align-items: center;
@@ -139,7 +154,7 @@
     background-color: rgba(88, 184, 238, 0.17);
   }
   
-  @media (max-width: 900px) {
+  @media (max-width: 1200px) {
     body{
       width: 100%;
       margin: 0;
@@ -159,10 +174,18 @@
     }
     .primera-columna{
       height: auto;
+      flex: initial;
     }
     .parametros-equipos{
       height: auto;
       overflow-y: initial;
+    }
+    .segunda-columna{
+      height: auto;
+      flex: initial;
+    }
+    .canva{
+      width: 100%;
     }
     .columnas{
       height: auto;

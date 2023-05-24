@@ -4,9 +4,10 @@ interface CircleProps {
   x: number;
   y: number;
   id: number;
+  color: string;
 }
 
-const Circle: React.FC<CircleProps> = ({ x, y, id }) => (
+const Circle: React.FC<CircleProps> = ({ x, y, id, color }) => (
   <div
     style={{
       position: 'absolute',
@@ -16,7 +17,7 @@ const Circle: React.FC<CircleProps> = ({ x, y, id }) => (
       width: '50px',
       height: '50px',
       borderRadius: '50%',
-      backgroundColor: '#58b8ee',
+      backgroundColor: color,
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
@@ -68,19 +69,23 @@ const Canva: React.FC<CanvaProps> = ({ numeroEquipos, setDistancias }) => {
       x,
       y,
       id: circles.length + 1,
+      color: randomColor(),
     };
 
     setCircles([...circles, newCircle]);
   };
 
+  const randomColor = () => {
+    const letters = '0123456789ABCDEF';
+    let color = '#';
+    for (let i = 0; i < 6; i++) {
+      color += letters[Math.floor(Math.random() * 16)];
+    }
+    return color;
+  };
+
   return (
-    <div
-      style={{
-        position: 'relative',
-        width: '500px',
-        height: '500px',
-        border: '1px solid black',
-      }}
+    <div className='canva'
       onClick={handleClick}
     >
       {circles.map((circle) => (
