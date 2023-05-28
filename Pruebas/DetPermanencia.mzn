@@ -5,9 +5,9 @@ array[1..n, 1..n] of int: D = [|
 745,0,80,337|
 665,80,0,380|
 929,337,380,0|];
-array[int] of var int: Cal = [-2,-3,-1,2,-3,1,-1,-2,5];
+array[int] of var int: Cal = [-2,3,1,2,-3,1,1,-2,5];
 
-array[int] of var int: inicio = [i * bool2int(Cal[i] < 0 /\ (i == 1 \/ Cal[i-1] >= 0)) | i in 1..length(Cal)]; %1..2*(n-1)
+array[int] of var int: inicio = [i * bool2int(Cal[i] > 0 /\ (i == 1 \/ Cal[i-1] < 0)) | i in 1..length(Cal)]; %1..2*(n-1)
 array[int] of var int: fin2 = [fin(inicio[i]) | i in 1..length(Cal)]; %1..2*(n-1)
 
 function var int: fin(var int: inicio) = 
@@ -15,7 +15,7 @@ function var int: fin(var int: inicio) =
     let {
       var int: j = inicio + 1
     } in 
-    if Cal[j] < 0 then
+    if Cal[j] > 0 then
       fin(j)
     else
       inicio
