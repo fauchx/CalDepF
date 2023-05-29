@@ -44,7 +44,7 @@ const PrimeraColumna: React.FC<{
                     inputProps={ {min: 0, inputMode: 'numeric'} }
                 />
                 <TextField
-                    label="Tamaño mínimo de gira"
+                    label="Tamaño mínimo de gira o permanencia"
                     type="number"
                     variant="outlined"
                     fullWidth
@@ -53,7 +53,7 @@ const PrimeraColumna: React.FC<{
                     inputProps={ {min: 0, inputMode: 'numeric'} }
                 />
                 <TextField
-                    label="Tamaño máximo de gira"
+                    label="Tamaño máximo de gira o permanencia"
                     type="number"
                     variant="outlined"
                     fullWidth
