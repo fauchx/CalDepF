@@ -15,9 +15,9 @@ canvas.addEventListener('mousemove', function (e) {
         canvas.style.cursor = 'move';
     } else {
         canvas.style.cursor = 'auto';
-        drawCircle(mousePos, 'rgba(0, 0, 255, 0.5)'); // Dibujar círculo en el movimiento del puntero del mouse
+        drawCircle(mousePos, 'rgba(0, 0, 255, 0.5)');
         for (let circle of circles) {
-            drawLine(mousePos, circle); // Dibujar línea a todos los círculos existentes
+            drawLine(mousePos, circle);
         }
     }
 });
@@ -65,7 +65,7 @@ function circleUnderMouse(mousePos) {
     for (let i = 0; i < circles.length; i++) {
         let dx = mousePos.x - circles[i].x;
         let dy = mousePos.y - circles[i].y;
-        if (Math.sqrt(dx * dx + dy * dy) < 8) { // radio cambiado a 8px
+        if (Math.sqrt(dx * dx + dy * dy) < 8) {
             return i;
         }
     }
@@ -82,7 +82,7 @@ function getMousePos(canvas, evt) {
 
 function drawCircle(position, color) {
     ctx.beginPath();
-    ctx.arc(position.x, position.y, 8, 0, 2 * Math.PI, false); // radio cambiado a 8px
+    ctx.arc(position.x, position.y, 8, 0, 2 * Math.PI, false);
     ctx.fillStyle = color;
     ctx.fill();
 }

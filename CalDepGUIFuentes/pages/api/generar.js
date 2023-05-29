@@ -33,10 +33,10 @@ export default async function handler(req, res) {
 
         try {
             const { stdout, stderr } = (objetivo === 'optimizar') ?
-                await exec(`minizinc /../CalDep.mzn ${fileName}`):
+                await exec(`minizinc /../CalDep.mzn ${fileName}`) :
                 await exec(`minizinc /../CalDepSatisfy.mzn ${fileName}`);
             //console.log(`${stdout}`, splitModelStdout(stdout));
-            const {result, cost} = splitModelStdout(stdout, objetivo);
+            const { result, cost } = splitModelStdout(stdout, objetivo);
             res.status(200).json({ result: result, cost: cost });
         } catch (error) {
             res.status(500).json({ error: 'Error al ejecutar el modelo MiniZinc' });
@@ -51,12 +51,11 @@ export default async function handler(req, res) {
 
 function splitModelStdout(stdout, objetivo) {
     const lines = stdout.split('\n');
-    // Remove the last four lines ("1025", "----------", "==========")
-    var startSliceRelevantLns, endSliceRelevantLns, startSliceCost, endSliceCost ;
+    var startSliceRelevantLns, endSliceRelevantLns, startSliceCost, endSliceCost;
     if (objetivo === 'optimizar') {
         startSliceCost = -4;
         endSliceCost = -3;
-    } else if(objetivo === 'satisfacer') {
+    } else if (objetivo === 'satisfacer') {
         startSliceCost = -3;
         endSliceCost = -2;
 
@@ -64,5 +63,5 @@ function splitModelStdout(stdout, objetivo) {
     const relevantLines = lines.slice(0, -4);
     const cost = Number(lines.slice(startSliceCost, endSliceCost));
     const result = relevantLines.map(line => line.split(' ').map(Number))
-    return {result, cost};
+    return { result, cost };
 }

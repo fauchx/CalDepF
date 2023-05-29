@@ -10,85 +10,91 @@ import axios from 'axios';
 const PrimeraColumna: React.FC<{
     onIngresarDistancias: () => void;
     onNumEquiposChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onMin: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onMax: (e: React.ChangeEvent<HTMLInputElement>) => void;
     onFechaInicioChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     setEscribirDistancias: React.Dispatch<React.SetStateAction<boolean>>;
     objetivo: string;
     setObjetivo: React.Dispatch<React.SetStateAction<string>>;
     disabled: boolean;
-    
+
 }> = ({ onIngresarDistancias,
     onNumEquiposChange,
     onFechaInicioChange,
     setEscribirDistancias,
-    objetivo, 
-    setObjetivo, 
-    disabled }) => {
-    return (
-        <div className="primera-columna">
-            <Typography variant="h5" gutterBottom>
-                Calendario de eventos deportivos
-            </Typography>
-            {/* Agrega aquí el logo */}
-            <Typography variant="body1" gutterBottom>
-                Para generar el calendario de eventos deportivos, ingrese el número de equipos que van a participar, el máximo y mínimo de encuentros continuos como visitante o de local y la fecha desde la que desea que se calcule.
-            </Typography>
-            <div className="parametros-equipos">
-                <TextField
-                    label="Número de equipo"
-                    type="number"
-                    variant="outlined"
-                    fullWidth
-                    margin="normal"
-                    onChange={onNumEquiposChange}
+    objetivo,
+    setObjetivo,
+    disabled, onMin, onMax }) => {
+        return (
+            <div className="primera-columna">
+                <Typography variant="h5" gutterBottom>
+                    Calendario de eventos deportivos
+                </Typography>
+
+                <Typography variant="body1" gutterBottom>
+                    Para generar el calendario de eventos deportivos, ingrese el número de equipos que van a participar, el máximo y mínimo de encuentros continuos como visitante o de local y la fecha desde la que desea que se calcule.
+                </Typography>
+                <div className="parametros-equipos">
+                    <TextField
+                        label="Número de equipo"
+                        type="number"
+                        variant="outlined"
+                        fullWidth
+                        margin="normal"
+                        onChange={onNumEquiposChange}
+                        disabled={disabled}
+                        inputProps={{ min: 0, inputMode: 'numeric' }}
+                    />
+                    <TextField
+                        label="Tamaño mínimo de gira o permanencia"
+                        type="number"
+                        variant="outlined"
+                        fullWidth
+                        margin="normal"
+                        disabled={disabled}
+                        onChange={onMin}
+                        inputProps={{ min: 0, inputMode: 'numeric' }}
+                    />
+                    <TextField
+                        label="Tamaño máximo de gira o permanencia"
+                        type="number"
+                        variant="outlined"
+                        fullWidth
+                        margin="normal"
+                        disabled={disabled}
+                        onChange={onMax}
+                        inputProps={{ min: 0, inputMode: 'numeric' }}
+                    />
+                    <TextField
+                        label="Fecha de inicio"
+                        type="date"
+                        variant="outlined"
+                        fullWidth
+                        margin="normal"
+                        disabled={disabled}
+                        InputLabelProps={{ shrink: true }}
+                        onChange={onFechaInicioChange}
+                    />
+                    <MuiSwitch labelText='Ingresar distancias manualmente:' setState={setEscribirDistancias} />
+                    <MuiSelect label='Objetivo' objetivo={objetivo} setObjetivo={setObjetivo} />
+                </div>
+                <Button
+                    variant="contained"
+                    color="primary"
+                    className="boton-distancias"
+                    onClick={onIngresarDistancias}
                     disabled={disabled}
-                    inputProps={ {min: 0, inputMode: 'numeric'} }
-                />
-                <TextField
-                    label="Tamaño mínimo de gira o permanencia"
-                    type="number"
-                    variant="outlined"
-                    fullWidth
-                    margin="normal"
-                    disabled={disabled}
-                    inputProps={ {min: 0, inputMode: 'numeric'} }
-                />
-                <TextField
-                    label="Tamaño máximo de gira o permanencia"
-                    type="number"
-                    variant="outlined"
-                    fullWidth
-                    margin="normal"
-                    disabled={disabled}
-                    inputProps={ {min: 0, inputMode: 'numeric'} }
-                />
-                <TextField
-                    label="Fecha de inicio"
-                    type="date"
-                    variant="outlined"
-                    fullWidth
-                    margin="normal"
-                    disabled={disabled}
-                    InputLabelProps={{ shrink: true }}
-                    onChange={onFechaInicioChange}
-                />
-                <MuiSwitch labelText='Ingresar distancias manualmente:' setState={setEscribirDistancias}/>
-                <MuiSelect label='Objetivo' objetivo={objetivo} setObjetivo={setObjetivo}/>
+                >
+                    Ingresar distancias
+                </Button>
             </div>
-            <Button
-                variant="contained"
-                color="primary"
-                className="boton-distancias"
-                onClick={onIngresarDistancias}
-                disabled={disabled}
-            >
-                Ingresar distancias
-            </Button>
-        </div>
-    );
-};
+        );
+    };
 
 const TresColumnas: React.FC = () => {
     const [numEquipos, setNumEquipos] = useState<number>(0);
+    const [numMin, setNumMin] = useState<number>(0);
+    const [numMax, setNumMax] = useState<number>(0);
     const [distancias, setDistancias] = useState<Map<string, number>>(new Map());
     const [mostrarSegundaColumna, setMostrarSegundaColumna] = useState(false);
     const [escribirDistancias, setEscribirDistancias] = useState<boolean>(true);
@@ -108,7 +114,19 @@ const TresColumnas: React.FC = () => {
     ) => {
         setNumEquipos(Number(e.target.value));
     };
-    
+
+    const handleMin = (
+        e: React.ChangeEvent<HTMLInputElement>
+    ) => {
+        setNumMin(Number(e.target.value));
+    };
+
+    const handleMax = (
+        e: React.ChangeEvent<HTMLInputElement>
+    ) => {
+        setNumMax(Number(e.target.value));
+    };
+
     const handleFechaInicioChange = (
         e: React.ChangeEvent<HTMLInputElement>
     ) => {
@@ -122,8 +140,8 @@ const TresColumnas: React.FC = () => {
 
         const data = {
             numEquipos,
-            minTamañoGira: 1,
-            maxTamañoGira: 3,
+            minTamañoGira: numMin,
+            maxTamañoGira: numMax,
             distancias: escribirDistancias ? Object.fromEntries(distancias) : distancias,
             objetivo: objetivo,
         };
@@ -158,6 +176,8 @@ const TresColumnas: React.FC = () => {
                     onNumEquiposChange={handleNumEquiposChange}
                     onFechaInicioChange={handleFechaInicioChange}
                     setEscribirDistancias={setEscribirDistancias}
+                    onMin={handleMin}
+                    onMax={handleMax}
                     objetivo={objetivo}
                     setObjetivo={setObjetivo}
                     disabled={mostrarSegundaColumna}
@@ -170,10 +190,10 @@ const TresColumnas: React.FC = () => {
                         onGenerar={handleGenerar}
                         escribirDistancias={escribirDistancias}
                         disabled={mostrarFechas}
-                        
+
                     />
                 )}
-                <TerceraColumna 
+                <TerceraColumna
                     fechaInicio={fechaInicio}
                     encuentros={encuentros}
                     costo={costo}
@@ -215,13 +235,12 @@ const SegundaColumna: React.FC<{
                         </Typography>
                         <TextField
                             type="number"
-                            //value={distancias.get(key) || ''}
                             /*@ts-ignore */
                             onChange={(e) => handleDistanciaChange(e, key)}
                             variant="outlined"
                             fullWidth
                             margin="normal"
-                            inputProps={ {min: 0, inputMode: 'numeric'} }
+                            inputProps={{ min: 0, inputMode: 'numeric' }}
                         />
                     </div>
                 );
@@ -236,7 +255,7 @@ const SegundaColumna: React.FC<{
                 Distancia entre locaciones
             </Typography>
             <div className="distancias-inputs">
-                {escribirDistancias ? generarDistancias() : <Canva numeroEquipos={numEquipos} setDistancias={setDistancias} />}	  
+                {escribirDistancias ? generarDistancias() : <Canva numeroEquipos={numEquipos} setDistancias={setDistancias} />}
             </div>
             <Button
                 variant="contained"
@@ -251,32 +270,32 @@ const SegundaColumna: React.FC<{
     );
 };
 
-const TerceraColumna: React.FC <{ 
+const TerceraColumna: React.FC<{
     fechaInicio: String,
     encuentros: [],
     costo: number,
     numEquipos: number
     loading: boolean
- }> = ( {fechaInicio, encuentros, costo, numEquipos, loading} ) => {
-    
-    const [chargedRequest, setChargedRequest] = useState(false);
-    const fechaInicioDate : Date = new Date (fechaInicio.toString()+'T12:00:00');
-    var currentDate : Date;
-    var matches : any = {}; //Variable que sirve para verifica si ya se registró un partido para un equipo en una fecha particular
+}> = ({ fechaInicio, encuentros, costo, numEquipos, loading }) => {
 
-    const handleFechaCurrent = (indexFecha :  number) => {
+    const [chargedRequest, setChargedRequest] = useState(false);
+    const fechaInicioDate: Date = new Date(fechaInicio.toString() + 'T12:00:00');
+    var currentDate: Date;
+    var matches: any = {};
+
+    const handleFechaCurrent = (indexFecha: number) => {
         currentDate = new Date(fechaInicioDate);
         currentDate.setDate(currentDate.getDate() + indexFecha);
 
-        return(
+        return (
             <Typography variant="subtitle2" gutterBottom>
-                            {currentDate.toLocaleDateString()}
+                {currentDate.toLocaleDateString()}
             </Typography>
         );
     };
 
     useEffect(() => {
-        if(!chargedRequest && loading){
+        if (!chargedRequest && loading) {
             setChargedRequest(true);
         }
     }, [loading]);
@@ -285,8 +304,9 @@ const TerceraColumna: React.FC <{
         window.location.reload();
     }
 
-    const handlePartidos = (rival : number, equipo :  number) => {;
-        
+    const handlePartidos = (rival: number, equipo: number) => {
+        ;
+
         if (!(Math.abs(rival) in matches)) {
 
             if (equipo === numEquipos) {
@@ -297,9 +317,9 @@ const TerceraColumna: React.FC <{
 
             return (
                 <div className="partido">
-                        <Typography variant="subtitle1" gutterBottom>
-                            Partido  {rival < 0 ? '(V)' : '(L)'} Equipo {equipo} vs Equipo {Math.abs(rival)} 
-                        </Typography>
+                    <Typography variant="subtitle1" gutterBottom>
+                        Partido  {rival < 0 ? '(V)' : '(L)'} Equipo {equipo} vs Equipo {Math.abs(rival)}
+                    </Typography>
                 </div>
             );
         } else if (equipo === numEquipos) {
@@ -309,16 +329,16 @@ const TerceraColumna: React.FC <{
     };
 
     return (
-        <div className={ chargedRequest ? 'tercera-columna' : 'tercera-columna no-tournament-loaded'}>
+        <div className={chargedRequest ? 'tercera-columna' : 'tercera-columna no-tournament-loaded'}>
             <div className='header-tercera-columna'>
                 <Typography variant="h5" gutterBottom>
                     Calendario Sugerido
                 </Typography>
-                { chargedRequest &&
+                {chargedRequest &&
                     <div className='costo-resultado'>
                         <Typography variant="subtitle1" gutterBottom>
                             Costo de giras: {costo}
-                        </Typography> 
+                        </Typography>
                     </div>
                 }
             </div>
@@ -326,7 +346,7 @@ const TerceraColumna: React.FC <{
             {loading ? (
                 <Loader />
             ) : (
-                <div className ='encuentros'>
+                <div className='encuentros'>
                     {encuentros.map((encuentro: any, indexFecha: number) => (
                         <div className="fecha">
 
@@ -340,12 +360,12 @@ const TerceraColumna: React.FC <{
                                     handlePartidos(rival, indexEquipo + 1)
                                 ))}
                             </div>
-                            
+
                         </div>
                     ))}
                 </div>
             )}
-            { chargedRequest &&
+            {chargedRequest &&
                 <Button variant="contained" color="primary" className="boton-generar" onClick={handleRefresh} >
                     Reset
                 </Button>

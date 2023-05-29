@@ -43,7 +43,7 @@ const Canva: React.FC<CanvaProps> = ({ numeroEquipos, setDistancias }) => {
   useEffect(() => {
     if (circles.length <= 1) return;
 
-    var distances : any =  {};
+    var distances: any = {};
 
     for (let i = 0; i < circles.length; i++) {
       for (let j = i + 1; j < circles.length; j++) {
@@ -51,7 +51,7 @@ const Canva: React.FC<CanvaProps> = ({ numeroEquipos, setDistancias }) => {
         const dx = circles[i].x - circles[j].x;
         const dy = circles[i].y - circles[j].y;
         const distance = Math.sqrt(dx * dx + dy * dy);
-        distances[key] = Math.round(distance); //Redondeando porque implementación del modelo no recibe decimales
+        distances[key] = Math.round(distance);
       }
     }
 
